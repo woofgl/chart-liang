@@ -14,7 +14,7 @@ LineChart.prototype.init = function(el, opts){
 	self._opts = opts; // TODO: need to have some default
 	
 	// Set the dimensions of the canvas / graph
-	var margin = {top: 30, right: 20, bottom: 30, left: 50};
+	var margin = self._margin = {top: 30, right: 20, bottom: 30, left: 50};
 	var width = self._width = el.clientWidth - margin.left - margin.right;
 	var height = self._height = el.clientHeight - margin.top - margin.bottom;
 
@@ -51,18 +51,14 @@ LineChart.prototype.update = function(data){
 	var self = this;
 
 	data.forEach(function(d) {
-        d.date = self._parseDate(d.date);
-        d.close = + d.close;
-    });
+		d.date = self._parseDate(d.date);
+		d.close = + d.close;
+	});
 
 	// Scale the range of the data
 	self._x.domain(d3.extent(data, function(d) { return d.date; }));
 	self._y.domain([0, d3.max(data, function(d) { return d.close; })]);
 
-	// Add the valueline path.
-	self._svg.append("path")
-		.attr("class", "line")
-		.attr("d", self._valueline(data));
 
 	// Add the X Axis
 	self._svg.append("g")
@@ -74,6 +70,31 @@ LineChart.prototype.update = function(data){
 	self._svg.append("g")
 		.attr("class", "y axis")
 		.call(self._yAxis);
+
+	// Add the valueline path.
+	self._svg.append("path")
+		.attr("class", "line")
+		.transition()
+		.attr("d", self._valueline(data));
+
+	// Add 'curtain' rectangle to hide entire graph //
+	var curtain = self._svg.append('rect')
+		.attr('x', 1)
+		.attr('y', -1)
+		.attr('height', self._height + 1)
+		.attr('width', self._width)
+		.attr('class', 'curtain');
+
+	var t = self._svg.transition()
+		.delay(750)
+		.duration(6000)
+		.ease(d3.easeLinear)
+		.on('end', function() {
+			d3.select('rect.curtain')
+			.remove();
+		});
+	
+	t.select('rect.curtain').attr('x', self._margin.left + self._width);
 
 	return self;
 };
