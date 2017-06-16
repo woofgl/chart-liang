@@ -3,7 +3,8 @@ var render = require("../js-app/render.js").render;
 
 var pathToView = {
 	"": "HomeView", 
-	"linechart": "LineChartView"
+	"linechart": "LineChartView",
+	"piechart": "PieChartView"
 };
 
 
