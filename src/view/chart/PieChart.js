@@ -49,13 +49,35 @@ PieChart.prototype.init = function(el, opts){
 
 PieChart.prototype.update = function(data){
 	var self = this;
+	var rx = self._width / 2;
+	var ry = self._height / 2;
 
 	var arc = self._svg.selectAll(".arc")
 		.data(self._pie(data))
 		.enter().append("g")
-		.attr("x", self._width / 2)
-		.attr("y", self._height / 2)
-		.attr("class", "arc");
+		.attr("x", rx)
+		.attr("y", ry)
+		.attr("class", "arc")
+		.on("click", function(d){
+			var part = d3.select(this);
+			var distance = 50;
+			var midAngle = (d.endAngle + d.startAngle) / 2;
+			var x = 0, y = 0;
+			if(midAngle <= Math.PI / 2){
+				x = Math.sin(midAngle) * distance;
+				y = -1 * Math.cos(midAngle) * distance;
+			}else if(midAngle > Math.PI / 2 && midAngle <= Math.PI){
+				x = Math.cos(midAngle - Math.PI / 2) * distance;
+				y = Math.sin(midAngle - Math.PI / 2) * distance;
+			}else if(midAngle > Math.PI && midAngle <= Math.PI * 3 / 2){
+				x = -1 * Math.sin(midAngle - Math.PI) * distance;
+				y = Math.cos(midAngle - Math.PI) * distance;
+			}else{
+				x = -1 * Math.cos(midAngle - Math.PI * 3 / 2) * distance;
+				y = -1 * Math.sin(midAngle - Math.PI * 3 / 2) * distance;
+			}
+			part.transition().duration(1000).attr("transform", "translate(" + x + ", " + y + ")");
+		});
 
 	arc.append("path")
 		.attr("fill", function(d) { return self._colors(d.data.age); })
@@ -72,33 +94,6 @@ PieChart.prototype.update = function(data){
 		.attr("transform", function(d) { return "translate(" + self._label.centroid(d) + ")"; })
 		.attr("dy", "0.35em")
 		.text(function(d) { return d.data.age; });
-
-
-
-	// arc.append("path")
-	// 	.attr("d", d3.arc().outerRadius(50 - 10).innerRadius(0).startAngle(0))
-	// 	.attr("class", "test")
-	// 	.attr("fill", "red");
-
-	// // // Add 'curtain' rectangle to hide entire graph //
-	// var curtainRadius = Math.max(self._width / 2, self._height / 2);
-	// var curtain = self._svg.append('rect')
-	// 	.attr('x', 0)
-	// 	.attr('y', 0)
-	// 	.attr('height', self._height)
-	// 	.attr('width', self._width)
-	// 	.attr('class', 'curtain');
-
-	// var t = self._svg.transition()
-	// 	.delay(750)
-	// 	.duration(6000)
-	// 	.ease(d3.easeLinear)
-	// 	.on('end', function() {
-	// 		d3.select('rect.curtain')
-	// 		.remove();
-	// 	});
-	
-	// t.select('rect.curtain').attr('x', self._margin.left + self._width);
 
 	return self;
 };
